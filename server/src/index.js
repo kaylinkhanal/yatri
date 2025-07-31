@@ -1,6 +1,9 @@
 import express from 'express';
 import userRoutes from './routes/user.js';
+import cors from 'cors';
+
 const app = express();
+app.use(cors())
 app.use(express.json());
 import dotenv from 'dotenv';
 import connect from './db/connect.js';
