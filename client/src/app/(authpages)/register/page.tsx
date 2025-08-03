@@ -52,9 +52,10 @@ export default function RegisterPage() {
   })
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-      <Card className="w-full max-w-md bg-white text-gray-900 shadow-md border-gray-200">
-        <CardHeader className="space-y-1 text-center">
+
+     <div>
+
+<CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
             <Image src="/logo.png" alt="Yatri Logo" width={120} height={120} className="object-contain" priority />
           </div>
@@ -173,7 +174,6 @@ export default function RegisterPage() {
             </Link>
           </div>
         </CardContent>
-      </Card>
-    </div>
+     </div>
   )
 }

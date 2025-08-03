@@ -1,0 +1,113 @@
+"use client"
+
+import Image from "next/image"
+import Link from "next/link"
+import { useFormik } from "formik"
+import * as Yup from "yup"
+import { useState } from "react"
+
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import {
+    Card,
+    CardAction,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+  } from "@/components/ui/card"
+import { Label } from "@radix-ui/react-label"
+import axios from "axios"
+
+export default function RegisterPage() {
+  const [registrationStatus, setRegistrationStatus] = useState<{ success: boolean; message: string } | null>(null)
+
+  const validationSchema = Yup.object({
+    phoneNumber: Yup.string()
+      .matches(/^\d{10}$/, "Phone number must be 10 digits")
+      .required("Phone Number is required"),
+    password: Yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
+
+  })
+
+  const formik = useFormik({
+    initialValues: {
+      firstName: "",
+      lastName: "",
+      phoneNumber: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+    validationSchema: validationSchema,
+    onSubmit: async (values, { setSubmitting, resetForm }) => {
+        axios.post("http://localhost:8000/register", values)
+    },  
+  })
+
+  return (
+   <div>
+        <CardHeader className="space-y-1 text-center">
+          <div className="flex justify-center mb-4">
+            <Image src="/logo.png" alt="Yatri Logo" width={120} height={120} className="object-contain" priority />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={formik.handleSubmit} className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="phoneNumber" className="text-gray-700">
+                Phone Number
+              </Label>
+              <Input
+                id="phoneNumber"
+                type="tel"
+                placeholder="1234567890"
+                className="bg-white border-gray-300 text-gray-900 focus:ring-gold-DEFAULT focus:border-gold-DEFAULT"
+                {...formik.getFieldProps("phoneNumber")}
+              />
+              {formik.touched.phoneNumber && formik.errors.phoneNumber ? (
+                <div className="text-red-500 text-sm">{formik.errors.phoneNumber}</div>
+              ) : null}
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="password" className="text-gray-700">
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                className="bg-white border-gray-300 text-gray-900 focus:ring-gold-DEFAULT focus:border-gold-DEFAULT"
+                {...formik.getFieldProps("password")}
+              />
+              {formik.touched.password && formik.errors.password ? (
+                <div className="text-red-500 text-sm">{formik.errors.password}</div>
+              ) : null}
+            </div>
+      
+            <Button
+              type="submit"
+              className="w-full bg-gold-DEFAULT text-gold-foreground hover:bg-gold-DEFAULT/90"
+              disabled={formik.isSubmitting}
+            >
+              {formik.isSubmitting ? "Login In..." : "Login"}
+            </Button>
+          </form>
+          {registrationStatus && (
+            <div
+              className={`mt-4 text-center text-sm ${registrationStatus.success ? "text-green-600" : "text-red-600"}`}
+            >
+              {registrationStatus.message}
+            </div>
+          )}
+          <div className="mt-4 text-center text-sm text-gray-600">
+            Dont have an account yet?{" "}
+            <Link href="/register" className="underline text-gold-DEFAULT hover:text-gold-DEFAULT/90">
+              Sign Up
+            </Link>
+          </div>
+        </CardContent>
+</div>
+  )
+}
