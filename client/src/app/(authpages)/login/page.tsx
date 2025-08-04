@@ -33,10 +33,17 @@ export default function LoginPage() {
   })
   const router = useRouter()
   const handleSubmit = async (values) => {
-   const {data} = await axios.post("http://localhost:8000/login", values)
-   if(data.isLoggedIn){
-    router.push("/")
-   }
+    try{
+      const {data} = await axios.post("http://localhost:8000/login", values)
+      if(data.isLoggedIn){
+       router.push("/")
+      }
+    }catch(error) {
+      alert(error?.response?.data?.message)
+    }
+
+  
+   
   }
   const formik = useFormik({
     initialValues: {
