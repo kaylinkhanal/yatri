@@ -36,6 +36,11 @@ export default function RegisterPage() {
       .required("Confirm Password is required"),
   })
 
+  const handleSubmit = async (values) => {
+   const {data} = axios.post("http://localhost:8000/register", values)
+   console.log(data)
+  }
+
   const formik = useFormik({
     initialValues: {
       firstName: "",
@@ -47,7 +52,7 @@ export default function RegisterPage() {
     },
     validationSchema: validationSchema,
     onSubmit: async (values, { setSubmitting, resetForm }) => {
-        axios.post("http://localhost:8000/register", values)
+       handleSubmit(values)
     },  
   })
 

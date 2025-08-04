@@ -1,5 +1,8 @@
 import User from '../models/user.js';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+
+
 
 const getAllUsers = async (req,res) => {
     const user = await User.find();
@@ -10,17 +13,25 @@ const getAllUsers = async (req,res) => {
 
 const loginUser = async (req,res) => {
     // step 1: check if phone number exists in the db
+    const existingUser = await User.findOne({ phoneNumber: req.body.phoneNumber });
         //  no ---> error message "Phone number doesn't exist"
+        if(!existingUser) {
+            return res.status(404).json({ message: "Phone number doesn't exist" });
+        }
         //  yes ---> proceed to step 2
     // step 2 check if passeword matches
-
+    const isMatched =  await bcrypt.compare(req.body.password, existingUser.password)
+   
     // no: return error message "Invalid Password"
-
+        if(!isMatched) {
+            return res.status(401).json({ message: "Invalid Password" });
+        }
 
     // yes: proceed to step 3
-
-
+ 
     // step 3: generate a jwt token
+    const token = jwt.sign({phoneNumber: req.body.phoneNumber, role: existingUser.role}, process.env.JWT_SECRET);
+    return res.json({ message: "Login successful", token, user: existingUser, isLoggedIn: true });
         // return the message as "Login successful" and the token
 
      

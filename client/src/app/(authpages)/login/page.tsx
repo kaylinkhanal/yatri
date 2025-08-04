@@ -19,8 +19,9 @@ import {
   } from "@/components/ui/card"
 import { Label } from "@radix-ui/react-label"
 import axios from "axios"
+import { useRouter } from "next/navigation"
 
-export default function RegisterPage() {
+export default function LoginPage() {
   const [registrationStatus, setRegistrationStatus] = useState<{ success: boolean; message: string } | null>(null)
 
   const validationSchema = Yup.object({
@@ -30,20 +31,20 @@ export default function RegisterPage() {
     password: Yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
 
   })
-
+  const router = useRouter()
+  const handleSubmit = async (values) => {
+   const {data} = await axios.post("http://localhost:8000/login", values)
+   if(data.isLoggedIn){
+    router.push("/")
+   }
+  }
   const formik = useFormik({
     initialValues: {
-      firstName: "",
-      lastName: "",
       phoneNumber: "",
-      email: "",
       password: "",
-      confirmPassword: "",
     },
     validationSchema: validationSchema,
-    onSubmit: async (values, { setSubmitting, resetForm }) => {
-        axios.post("http://localhost:8000/register", values)
-    },  
+    onSubmit: handleSubmit,  
   })
 
   return (
