@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useFormik } from "formik"
 import * as Yup from "yup"
 import { useState } from "react"
-
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -37,8 +37,13 @@ export default function RegisterPage() {
   })
 
   const handleSubmit = async (values) => {
-   const {data} = axios.post("http://localhost:8000/register", values)
-   console.log(data)
+  try{
+    const {data} = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/register`, values)
+    toast(data?.message)
+  }catch(err){
+    toast(err?.response?.data?.message)
+  }
+
   }
 
   const formik = useFormik({
@@ -159,7 +164,7 @@ export default function RegisterPage() {
             </div>
             <Button
               type="submit"
-              className="w-full bg-gold-DEFAULT text-gold-foreground hover:bg-gold-DEFAULT/90"
+              className="w-full bg-[#f4c534] text-gold-foreground hover:bg-gold-DEFAULT/90"
               disabled={formik.isSubmitting}
             >
               {formik.isSubmitting ? "Registering..." : "Register"}
@@ -174,7 +179,7 @@ export default function RegisterPage() {
           )}
           <div className="mt-4 text-center text-sm text-gray-600">
             Already have an account?{" "}
-            <Link href="#" className="underline text-gold-DEFAULT hover:text-gold-DEFAULT/90">
+            <Link href="/login" className="underline text-gold-DEFAULT hover:text-gold-DEFAULT/90">
               Sign in
             </Link>
           </div>

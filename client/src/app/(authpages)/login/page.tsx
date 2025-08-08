@@ -32,9 +32,10 @@ export default function LoginPage() {
 
   })
   const router = useRouter()
+  
   const handleSubmit = async (values) => {
     try{
-      const {data} = await axios.post("http://localhost:8000/login", values)
+      const {data} =await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/login`, values)
       if(data.isLoggedIn){
        router.push("/")
       }
@@ -96,7 +97,7 @@ export default function LoginPage() {
       
             <Button
               type="submit"
-              className="w-full bg-gold-DEFAULT text-gold-foreground hover:bg-gold-DEFAULT/90"
+              className="w-full bg-[#f4c534] text-gold-foreground hover:bg-gold-DEFAULT/90"
               disabled={formik.isSubmitting}
             >
               {formik.isSubmitting ? "Login In..." : "Login"}
@@ -111,7 +112,7 @@ export default function LoginPage() {
           )}
           <div className="mt-4 text-center text-sm text-gray-600">
             Dont have an account yet?{" "}
-            <Link href="/register" className="underline text-gold-DEFAULT hover:text-gold-DEFAULT/90">
+            <Link href="/register" className="underline  text-gold-DEFAULT hover:text-gold-DEFAULT/90">
               Sign Up
             </Link>
           </div>

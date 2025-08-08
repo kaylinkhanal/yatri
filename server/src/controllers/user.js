@@ -64,3 +64,5 @@ const registerNewUser = async (req,res) => {
 
 
 export { getAllUsers,registerNewUser ,loginUser}
+
+
