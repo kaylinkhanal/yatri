@@ -1,0 +1,61 @@
+import mongoose from 'mongoose';
+
+const busSchema = new mongoose.Schema({
+    busNumber: {
+        type: String,
+        required: true,
+        trim: true,
+        unique: true,
+    },
+    plateNumber: {
+        type: String,
+        required: true,
+        trim: true,
+        unique: true,
+    },
+    totalSeats: {
+        type: Number,
+        required: true,
+    },
+    occupiedSeats: {
+        type: Number,
+        default: 0,
+    },
+    busType: {
+        type: String,
+        enum: ["Standard", "Premium", "Luxury"],
+        default: "Standard",
+    },
+    farePerKm: {
+        type: Number,
+        required: true,
+        min: 0,
+    },
+    canBeRented: {
+        type: Boolean,
+        default: false,
+    },
+    // route: { type: mongoose.Schema.Types.ObjectId, ref: "Route" },
+    // driver: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+
+    status: {
+        type: String,
+        enum: ["active", "inactive", "maintenance"],
+        default: "active",
+    },
+    currentLocation: {
+        type: {
+            type: String,
+            enum: ["Point"],
+            default: "Point",
+        },
+        coordinates: {
+            type: [Number], // [longitude, latitude]
+            default: [0, 0],
+        }
+    },
+});
+
+
+const Bus = mongoose.model('Bus', busSchema);
+export default Bus;
