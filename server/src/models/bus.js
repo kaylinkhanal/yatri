@@ -1,3 +1,5 @@
+// yatri/server/src/models/bus.js
+
 import mongoose from 'mongoose';
 
 const busSchema = new mongoose.Schema({
@@ -40,8 +42,8 @@ const busSchema = new mongoose.Schema({
 
     status: {
         type: String,
-        enum: ["active", "inactive", "maintenance"],
-        default: "active",
+        enum: ["Active", "Inactive", "Maintenance"],
+        default: "Active",
     },
     currentLocation: {
         type: {
@@ -52,10 +54,9 @@ const busSchema = new mongoose.Schema({
         coordinates: {
             type: [Number], // [longitude, latitude]
             default: [0, 0],
-        }
+        },
     },
 });
 
-
-const Bus = mongoose.model('Bus', busSchema);
+const Bus = mongoose.model('Bus', busSchema); 
 export default Bus;
