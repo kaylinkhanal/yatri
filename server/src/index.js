@@ -1,5 +1,7 @@
 import express from 'express';
 import userRoutes from './routes/user.js';
+import busRoutes from './routes/bus.js';
+
 import cors from 'cors';
 
 const app = express();
@@ -11,7 +13,11 @@ connect()
 dotenv.config()
 const PORT = process.env.PORT || 8000;
 
+
 app.use(userRoutes)
+app.use(busRoutes)
+
 app.listen(PORT, ()=> {
     console.log(`Server is running on http://localhost:${PORT}`);
 })
+

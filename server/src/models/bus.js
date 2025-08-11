@@ -1,6 +1,7 @@
 // yatri/server/src/models/bus.js
 
 import mongoose from 'mongoose';
+import Seat from './seat.js';
 
 const busSchema = new mongoose.Schema({
     busNumber: {
@@ -46,16 +47,15 @@ const busSchema = new mongoose.Schema({
         default: "Active",
     },
     currentLocation: {
-        type: {
-            type: String,
-            enum: ["Point"],
-            default: "Point",
-        },
         coordinates: {
             type: [Number], // [longitude, latitude]
             default: [0, 0],
         },
     },
+    seatLayout: {
+        type: [[Seat.schema]], // Array of Seat subdocuments
+        default: [],
+    }
 });
 
 const Bus = mongoose.model('Bus', busSchema); 
