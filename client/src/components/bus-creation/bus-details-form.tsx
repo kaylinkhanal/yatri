@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Formik, Form, Field, ErrorMessage } from "formik"
 import * as Yup from "yup"
 import axios from "axios"
+import { useState } from "react"
 
 const busSchema = Yup.object().shape({
   busNumber: Yup.string().min(2, "Too Short!").max(20, "Too Long!").required("Required"),
@@ -26,6 +27,10 @@ interface BusDetailsFormProps {
 }
 
 export function BusDetailsForm({ busSeatsArr, totalSeats, occupiedSeats }: BusDetailsFormProps) {
+  const [image, setImage] = useState(null)
+  const handleChange = (e)=>{
+    setImage(e.target.files[0])
+  }
   return (
     <Card className="border-gray-200">
       <CardHeader className="pb-3">
@@ -44,11 +49,21 @@ export function BusDetailsForm({ busSeatsArr, totalSeats, occupiedSeats }: BusDe
           }}
           validationSchema={busSchema}
           onSubmit={(values, { setSubmitting }) => {
-            values.seatLayout = busSeatsArr
-            values.totalSeats = totalSeats
-
+            const formData = new FormData()
+            formData.append("busNumber", values.busNumber)
+            formData.append("plateNumber", values.plateNumber)
+            formData.append("busType", values.busType)
+            formData.append("farePerKm", values.farePerKm.toString())
+            formData.append("canBeRented", values.canBeRented.toString())
+            formData.append("status", values.status)
+            if (image) {
+              formData.append("image", image)
+            }
+            formData.append("seatLayout", JSON.stringify(busSeatsArr))
+            formData.append("totalSeats", totalSeats.toString())
+        
             axios
-              .post(`${process.env.NEXT_PUBLIC_API_URL}/bus`, values)
+              .post(`${process.env.NEXT_PUBLIC_API_URL}/bus`, formData)
               .then(() => alert("Bus created successfully!"))
               .catch((error) => alert("Error: " + error.message))
               .finally(() => setSubmitting(false))
@@ -136,6 +151,7 @@ export function BusDetailsForm({ busSeatsArr, totalSeats, occupiedSeats }: BusDe
                   Available for rental
                 </Label>
               </div>
+              <input type="file" onChange={handleChange}/>
 
               <Button
                 type="submit"
@@ -144,6 +160,7 @@ export function BusDetailsForm({ busSeatsArr, totalSeats, occupiedSeats }: BusDe
               >
                 {isSubmitting ? "Creating..." : "Create Bus"}
               </Button>
+
             </Form>
           )}
         </Formik>
@@ -151,3 +168,6 @@ export function BusDetailsForm({ busSeatsArr, totalSeats, occupiedSeats }: BusDe
     </Card>
   )
 }
+
+
+

@@ -10,6 +10,9 @@ const busSchema = new mongoose.Schema({
         trim: true,
         unique: true,
     },
+    image: {
+        type: String
+    },
     plateNumber: {
         type: String,
         required: true,

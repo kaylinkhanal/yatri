@@ -4,70 +4,22 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { Badge } from "@/components/ui/badge"
 import { PlusCircle, MapPin, UserPlus, Check, X } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import axios from "axios"
 
 export default function BusDashboard() {
-  const busData = [
-    {
-      id: "B001",
-      totalSeats: 45,
-      occupiedSeats: 30,
-      busType: "Premium",
-      farePerKm: 1.5,
-      canBeRented: true,
-      onMaintenance: false,
-      isActive: true,
-    },
-    {
-      id: "B002",
-      totalSeats: 30,
-      occupiedSeats: 15,
-      busType: "Gold",
-      farePerKm: 1.2,
-      canBeRented: true,
-      onMaintenance: false,
-      isActive: true,
-    },
-    {
-      id: "B003",
-      totalSeats: 50,
-      occupiedSeats: 48,
-      busType: "Pro",
-      farePerKm: 1.8,
-      canBeRented: false,
-      onMaintenance: true,
-      isActive: false,
-    },
-    {
-      id: "V001",
-      totalSeats: 12,
-      occupiedSeats: 8,
-      busType: "Van",
-      farePerKm: 0.8,
-      canBeRented: true,
-      onMaintenance: false,
-      isActive: true,
-    },
-    {
-      id: "B004",
-      totalSeats: 40,
-      occupiedSeats: 25,
-      busType: "Gold",
-      farePerKm: 1.3,
-      canBeRented: true,
-      onMaintenance: false,
-      isActive: true,
-    },
-    {
-      id: "V002",
-      totalSeats: 15,
-      occupiedSeats: 15,
-      busType: "Van",
-      farePerKm: 0.9,
-      canBeRented: false,
-      onMaintenance: false,
-      isActive: false,
-    },
-  ]
+  const [busData, setBusData] = useState([])
+
+  const fetchBusData  =async () => {
+      const {data}  =await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/bus`)
+      if (data) {
+        setBusData(data)
+      }
+  }
+
+  useEffect(()=>{
+    fetchBusData()
+  },[])
   const router = useRouter()
   return (
     <div className="flex flex-col gap-8 p-4 md:p-6 lg:p-8">
@@ -110,8 +62,12 @@ export default function BusDashboard() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Bus ID</TableHead>
+
+
+                <TableHead>Bus Image</TableHead>
                 <TableHead>Total Seats</TableHead>
+                <TableHead>Bus Number</TableHead>
+                <TableHead>Plate Number</TableHead>
                 <TableHead>Occupied Seats</TableHead>
                 <TableHead>Bus Type</TableHead>
                 <TableHead>Fare/Km</TableHead>
@@ -121,10 +77,14 @@ export default function BusDashboard() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {busData.map((bus) => (
+              {busData.length > 0 && busData.map((bus) => (
                 <TableRow key={bus.id}>
-                  <TableCell className="font-medium">{bus.id}</TableCell>
+                  <TableCell>
+                    <img src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${bus.image}`} alt="bus image" className="w-12 h-12 object-cover rounded-md" />
+                    </TableCell>
                   <TableCell>{bus.totalSeats}</TableCell>
+                  <TableCell>{bus.busNumber}</TableCell>
+                  <TableCell>{bus.plateNumber}</TableCell>
                   <TableCell>{bus.occupiedSeats}</TableCell>
                   <TableCell>
                     <Badge variant="outline">{bus.busType}</Badge>

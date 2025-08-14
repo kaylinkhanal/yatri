@@ -28,6 +28,7 @@ export default function CreateBusPage() {
   ])
 
   const [selectedSeat, setSelectedSeat] = useState<number[]>([])
+  const [aisleIndex, setAisleIndex] = useState(2)
 
   const alphabetsArr = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
 
@@ -55,6 +56,9 @@ export default function CreateBusPage() {
         break
       case "DOOR_TO_THE_RIGHT":
         existingSeats[rowIndex][seatId - 1].occupant = "door-right"
+        break
+      case "AISLE_TO_THE_RIGHT":
+        setAisleIndex(selectedSeat[1])
         break
       case "EMERGENCY_EXIT":
         existingSeats[rowIndex][seatId - 1].occupant = "emergency-exit"
@@ -133,6 +137,7 @@ export default function CreateBusPage() {
           <h1 className="text-2xl font-bold text-gray-900 mb-1">Create New Bus</h1>
           <p className="text-sm text-gray-600">Design your bus layout and configure details</p>
         </div>
+      
 
         {/* Statistics */}
         <SeatStatistics totalSeats={totalSeats} occupiedSeats={occupiedSeats} availableSeats={availableSeats} />
@@ -150,6 +155,7 @@ export default function CreateBusPage() {
               busSeatsArr={busSeatsArr}
               selectedSeat={selectedSeat}
               onSeatSelect={handleSeatSelect}
+              aisleIndex={aisleIndex}
               onAddSeat={addNewSeat}
               onAddRow={addBusRows}
               onRemoveSeat={handleRemoveSeat}

@@ -9,6 +9,8 @@ app.use(cors())
 app.use(express.json());
 import dotenv from 'dotenv';
 import connect from './db/connect.js';
+app.use('/uploads', express.static('uploads'))
+
 connect()
 dotenv.config()
 const PORT = process.env.PORT || 8000;

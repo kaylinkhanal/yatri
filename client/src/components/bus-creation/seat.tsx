@@ -11,6 +11,7 @@ const actions = [
   { type: "DOOR_TO_THE_LEFT", label: "Door L", color: "bg-purple-500" },
   { type: "DOOR_TO_THE_RIGHT", label: "Door R", color: "bg-purple-500" },
   { type: "EMERGENCY_EXIT", label: "Emergency", color: "bg-orange-500" },
+  {type: "AISLE_TO_THE_RIGHT", label: "Aisle R", color: "bg-yellow-500" },
 ]
 
 interface SeatActionPanelProps {
@@ -68,7 +69,7 @@ interface SeatGridProps {
   onRemoveSeat: (rowIndex: number) => void
 }
 
-export function SeatGrid({ busSeatsArr, selectedSeat, onSeatSelect, onAddSeat, onAddRow, onRemoveSeat, }: SeatGridProps) {
+export function SeatGrid({ busSeatsArr, selectedSeat,aisleIndex, onSeatSelect, onAddSeat, onAddRow, onRemoveSeat, }: SeatGridProps) {
   const generateColor = (seat: Seat) => {
     if (seat.isEmpty) return "bg-transparent border-2 border-dashed border-gray-300"
 
@@ -121,7 +122,7 @@ export function SeatGrid({ busSeatsArr, selectedSeat, onSeatSelect, onAddSeat, o
                         selectedSeat[0] === rowIndex && selectedSeat[1] === seat.id
                           ? "ring-2 ring-yellow-400 scale-110"
                           : ""
-                      } ${seat.isEmpty ? "cursor-default" : ""}`}
+                      } ${seat.isEmpty ? "cursor-default" : ""} ${aisleIndex==seat.id && busSeatsArr.length-1 !== rowIndex ? ' mr-12 ': ''} `}
                       disabled={seat.isEmpty}
                     >
                       {getSeatIcon(seat)}
@@ -129,6 +130,7 @@ export function SeatGrid({ busSeatsArr, selectedSeat, onSeatSelect, onAddSeat, o
                     {selectedSeat[0] === rowIndex && selectedSeat[1] === seat.id && !seat.isEmpty && (
                       <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border border-white"></div>
                     )}
+
                   </div>
                 ))}
               </div>
