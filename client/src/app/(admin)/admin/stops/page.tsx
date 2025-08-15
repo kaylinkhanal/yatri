@@ -1,9 +1,21 @@
-import React from 'react'
+'use client'
+import dynamic from "next/dynamic";
+import { useMemo } from "react";
 
-const Stops = () => {
-  return (
-    <div>Stops</div>
-  )
+export default  function Page() {
+    const Map =  dynamic(
+        () => import('@/components/map/'),
+        {
+            loading: () => <p>A map is loading</p>,
+            ssr: false
+        }
+    )
+
+    return (
+        <>
+            <div className="bg-white-700 mx-auto my-5 w-[100%] h-[100%]">
+                <Map posix={[27.71, 85.32]} />
+            </div>
+        </>
+    )
 }
-
-export default Stops
