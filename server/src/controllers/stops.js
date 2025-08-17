@@ -14,7 +14,14 @@ const addNewStop  = async (req,res) => {
     });
 }
 
+const deleteStop  = async (req,res) => {
+    await Stop.deleteOne({_id : req.query.id});
+    res.status(201).json({
+        message: "Stop deleted",
+    });
+}
 
-export { getAllStops, addNewStop };
+
+export { getAllStops, addNewStop, deleteStop};
 
 
