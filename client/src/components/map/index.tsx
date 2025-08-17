@@ -9,6 +9,8 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { Checkbox } from "../ui/checkbox";
+import { Label } from "../ui/label";
 
 interface MapProps {
     posix: LatLngExpression | LatLngTuple,
@@ -47,16 +49,34 @@ const Map = (Map: MapProps) => {
         setSearchTargetCoords(Object.values(e.target._latlng));
     };
 
+    const fetchStopLists = async () => {
+        try {
+            const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/stops`);
+            setStopLists(data);
+        } catch (error) {
+            console.error("Error fetching stop lists:", error);
+        }
+    }
+
+    useEffect(()=>{
+        fetchStopLists();
+    },[])
+
     const handleSelectPlace = (item) => {
         setSearchTargetCoords([item.geometry.coordinates[1], item.geometry.coordinates[0]]);
         setPlacesSearchResult([]); // Clear results after selection
         setSearchQuery(item.properties.formatted);
     };
 
-    const handleConfirmRoute = () => {
-        // Implement logic to save the new route
+    const handleConfirmRoute =async () => {
+       const {data} =await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/stops`, {
+        stopName: route,
+            location: {coordinates: searchTargetCoords},
+        })
         setNewRouteAssign(false);
         setRoute("");
+        setSearchTargetCoords(posix);
+        fetchStopLists();
     };
 
     const handleCancelRoute = () => {
@@ -64,6 +84,8 @@ const Map = (Map: MapProps) => {
         setSearchTargetCoords(posix);
         setRoute("");
     };
+
+  
 
     useEffect(() => {
         // A better check to see if the position has changed from the initial posix
@@ -84,7 +106,7 @@ const Map = (Map: MapProps) => {
                     />
                     <div className="flex gap-2 justify-end mt-2">
                         <Button onClick={handleCancelRoute} variant="secondary">Cancel</Button>
-                        <Button onClick={handleConfirmRoute} disabled={!route}>Confirm this route</Button>
+                        <Button onClick={handleConfirmRoute} disabled={!route}>Confirm this stop</Button>
                     </div>
                 </div>
             )}
@@ -128,7 +150,21 @@ const Map = (Map: MapProps) => {
                 >
                     <Popup>Hey! This is your location</Popup>
                 </Marker>
-            </MapContainer>
+
+                {stopLists.map((stop) => (
+                    <Marker
+                        key={stop.id}
+                        position={[stop.location.coordinates[0], stop.location.coordinates[1]]}
+                    >
+                        <Popup>
+                            <div className="text-sm">
+                                <strong>{stop.stopName}</strong><br />
+                                {stop.location.coordinates[1]}, {stop.location.coordinates[0]}
+                            </div>
+                        </Popup>
+                    </Marker>
+                ))}
+            </MapContainer> 
         </div>
     );
 };
