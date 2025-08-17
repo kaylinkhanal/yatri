@@ -2,12 +2,13 @@
 
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { LatLngExpression, LatLngTuple } from 'leaflet';
-
 import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import "leaflet-defaulticon-compatibility";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 
 interface MapProps {
     posix: LatLngExpression | LatLngTuple,
@@ -21,44 +22,115 @@ const defaults = {
 const Map = (Map: MapProps) => {
     const { zoom = defaults.zoom, posix } = Map
     const [placesSearchResult, setPlacesSearchResult] = useState([]);
-    const handleChange =async (e) => {
-        const {data} = await axios.get(`https://api.geoapify.com/v1/geocode/autocomplete?text=${e.target.value}%20mall&apiKey=ca280bd166fe4bad980b29d1c675409e&filter=countrycode:np`)
-        setPlacesSearchResult(data)
-    }
+    const [searchQuery, setSearchQuery] = useState("");
     const [stopLists, setStopLists] = useState([])
+    const [newRouteAssign, setNewRouteAssign] = useState(false)
     const [searchTargetCoords, setSearchTargetCoords] = useState(posix)
-    return (
-        <>
-        {JSON.stringify(searchTargetCoords)}
-             <MapContainer
-            center={searchTargetCoords}
-            zoom={zoom}
-            scrollWheelZoom={false}
-            style={{ height: "100%", width: "100%" }}
-        >
-            <div className="absolute top-5 left-12 z-10 bg-white p-2 rounded shadow z-1000">
-               <input onChange={handleChange}/>
-               {placesSearchResult?.features?.length > 0 && placesSearchResult.features.map((item)=>{
-                return (
-                    <ul>
-                        <li key={item.properties.place_id} onClick={()=>setSearchTargetCoords(item.geometry.coordinates.reverse())} className="cursor-pointer hover:bg-gray-100 p-1">
-                           {item.properties.formatted}
-                        </li>
-                    </ul>
-                )
-               })}
-            </div>
-            <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <Marker position={searchTargetCoords} draggable={true}>
-                <Popup>Hey ! I study here</Popup>
-            </Marker>
-        </MapContainer>
-        </>
-   
-    )
-}
+    const [route, setRoute] = useState("");
 
-export default Map
+    const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const query = e.target.value;
+        setSearchQuery(query);
+        if (query.length > 2) {
+            try {
+                const { data } = await axios.get(`https://api.geoapify.com/v1/geocode/autocomplete?text=${query}&apiKey=ca280bd166fe4bad980b29d1c675409e&filter=countrycode:np`);
+                setPlacesSearchResult(data.features);
+            } catch (error) {
+                console.error("Error fetching places:", error);
+            }
+        } else {
+            setPlacesSearchResult([]);
+        }
+    };
+
+    const handleDragEnd = (e) => {
+        setSearchTargetCoords(Object.values(e.target._latlng));
+    };
+
+    const handleSelectPlace = (item) => {
+        setSearchTargetCoords([item.geometry.coordinates[1], item.geometry.coordinates[0]]);
+        setPlacesSearchResult([]); // Clear results after selection
+        setSearchQuery(item.properties.formatted);
+    };
+
+    const handleConfirmRoute = () => {
+        // Implement logic to save the new route
+        setNewRouteAssign(false);
+        setRoute("");
+    };
+
+    const handleCancelRoute = () => {
+        setNewRouteAssign(false);
+        setSearchTargetCoords(posix);
+        setRoute("");
+    };
+
+    useEffect(() => {
+        // A better check to see if the position has changed from the initial posix
+        const hasChanged = JSON.stringify(searchTargetCoords) !== JSON.stringify(posix);
+        setNewRouteAssign(hasChanged);
+    }, [searchTargetCoords, posix]);
+
+    return (
+        <div className="relative h-screen w-full">
+            {newRouteAssign && (
+                <div className="absolute top-5 left-1/2 -translate-x-1/2 z-[1000] bg-white p-4 rounded-lg shadow-xl border border-gray-200 flex flex-col gap-2 min-w-[300px]">
+                    <h3 className="text-lg font-semibold text-gray-800">Assign New Route</h3>
+                    <p className="text-sm text-gray-600">Please name this new route.</p>
+                    <Input
+                        placeholder="Enter name of this route"
+                        value={route}
+                        onChange={(e) => setRoute(e.target.value)}
+                    />
+                    <div className="flex gap-2 justify-end mt-2">
+                        <Button onClick={handleCancelRoute} variant="secondary">Cancel</Button>
+                        <Button onClick={handleConfirmRoute} disabled={!route}>Confirm this route</Button>
+                    </div>
+                </div>
+            )}
+            <MapContainer
+                center={searchTargetCoords}
+                zoom={zoom}
+                scrollWheelZoom={false}
+                style={{ height: "100%", width: "100%" }}
+                className="relative z-0"
+            >
+                <div className="absolute top-5 left-5 z-[1000] bg-white p-2 rounded-lg shadow-lg max-w-sm">
+                    <Input
+                        onChange={handleChange}
+                        value={searchQuery}
+                        placeholder="Search for a place..."
+                    />
+                    {placesSearchResult?.length > 0 && (
+                        <ul className="mt-2 max-h-60 overflow-y-auto">
+                            {placesSearchResult.map((item) => (
+                                <li
+                                    key={item.properties.place_id}
+                                    onClick={() => handleSelectPlace(item)}
+                                    className="cursor-pointer hover:bg-gray-100 p-2 rounded-md transition-colors duration-150 text-sm"
+                                >
+                                    {item.properties.formatted}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+                <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <Marker
+                    eventHandlers={{
+                        dragend: handleDragEnd,
+                    }}
+                    position={searchTargetCoords}
+                    draggable={true}
+                >
+                    <Popup>Hey! This is your location</Popup>
+                </Marker>
+            </MapContainer>
+        </div>
+    );
+};
+
+export default Map;
