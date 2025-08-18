@@ -13,7 +13,7 @@ export default  function Page() {
 
     return (
         <>
-            <div className="bg-white-700 mx-auto my-5 w-[100%] h-[100%]">
+            <div className="bg-white-700 mx-auto w-[100%] h-[100%]">
                 <Map posix={[27.71, 85.32]} />
             </div>
         </>
