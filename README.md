@@ -1,34 +1,77 @@
-# yatri
+Yatri
+Project Overview
+Yatri is a comprehensive bus and vehicle management system designed to streamline bus operations, from route creation and fare assignment to real-time tracking and passenger reservations. The platform includes a dedicated admin panel, user-friendly dashboards for drivers and passengers, and a phased development roadmap to introduce new features.
 
-1.0.0 --- first release (major)
-Create Buses
-Create Stops
-Create Routes
-Assign fares
-reservation module-  seat (female/disabled/child seat) - driver/subdriver details. - add round trips
-Vehicle current locations
-Bus rental
-ADMIN panel https://dribbble.com/shots/13958896-Car-Rental-App
+Releases & Features
+This section outlines the key features introduced in each major release.
 
-1.0.1 --- second release (minor)
-Breverage booking
-agent/travel tours
-Total trips (----> offer)
-driver/sub driver rating
+1.0.0 --- First Release (Major)
+[x] Create Buses
 
-Role-Based Access Control
-Differentiated dashboards -Drivers, and Users.
-Driver Profiles & Availability
-Drivers can update availability, vehicle info, and receive ratings.
-Ride Booking Flow
-Real-time ride requests, driver matching, trip tracking, and completion.
-Live Tracking & Socket Integration
-GeoJSON-powered driver location sync via Socket.IO.
-Trip History & Receipt View
-Drivers and users can access ride summaries and digital receipts.
+[x] Add/remove bus seat rows and columns dynamically, assign seat type
 
-phase 2
-Admins,
-Admin Reporting Dashboard
-Visual metrics on rides, activity, peak time usage, and more.
-Oauth- google login
+[x] Create Stops
+
+[x] Create Routes
+
+[x] Assign fares
+
+[ ] Reservation Module
+
+[x] Seat selection (female/disabled/child)
+
+[ ] Driver/sub-driver details
+
+[ ] Add round trips
+
+[ ] Vehicle current locations
+
+[ ] Bus rental
+
+[x] ADMIN panel (inspired by this design: https://dribbble.com/shots/13958896-Car-Rental-App)
+
+1.0.1 --- Second Release (Minor)
+[ ] Beverage booking
+
+[ ] Agent/travel tours
+
+[ ] Total trips (with offers)
+
+[ ] Driver/sub-driver rating
+
+[ ] Role-Based Access Control
+
+[ ] Differentiated dashboards for Drivers and Users
+
+[ ] Driver Profiles & Availability
+
+[ ] Drivers can update availability and vehicle info
+
+[ ] Drivers can receive ratings
+
+[ ] Ride Booking Flow
+
+[ ] Real-time ride requests
+
+[ ] Driver matching
+
+[ ] Trip tracking and completion
+
+[ ] Live Tracking & Socket Integration
+
+[ ] GeoJSON-powered driver location sync via Socket.IO
+
+[ ] Trip History & Receipt View
+
+[ ] Drivers and users can access ride summaries and digital receipts
+
+Phase 2
+This is the planned roadmap for future development.
+
+[ ] Admins
+
+[ ] Admin Reporting Dashboard
+
+[ ] Visual metrics on rides, activity, and peak time usage
+
+[ ] OAuth integration (Google login)

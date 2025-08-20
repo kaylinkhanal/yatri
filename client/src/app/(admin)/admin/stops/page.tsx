@@ -14,7 +14,7 @@ export default  function Page() {
     return (
         <>
             <div className="bg-white-700 mx-auto w-[100%] h-[100%]">
-                <Map posix={[27.71, 85.32]} />
+                <Map posix={[27.71, 85.32]} type="stops" />
             </div>
         </>
     )

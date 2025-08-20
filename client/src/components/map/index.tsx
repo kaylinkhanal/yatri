@@ -1,7 +1,7 @@
 "use client"
 
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import { LatLngExpression, LatLngTuple } from 'leaflet';
+import { MapContainer, TileLayer, Marker, Popup,Polyline } from "react-leaflet";
+import { LatLngExpression, LatLngTuple  } from 'leaflet';
 import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
 import "leaflet-defaulticon-compatibility";
@@ -13,6 +13,12 @@ import L from "leaflet";
 import { toast } from "sonner";
 import { GlobeIcon, MapPinIcon, Navigation, TrashIcon } from "lucide-react";
 
+
+
+const polyline = [
+    [27.692638741379618,85.3133000899171],
+    [27.697665693707382,85.29887124629208],
+  ]
 interface MapProps {
     posix: LatLngExpression | LatLngTuple,
     zoom?: number,
@@ -34,13 +40,16 @@ const stopIcon = L.icon({
 });
 
 const Map = (Map: MapProps) => {
-    const { zoom = defaults.zoom, posix } = Map
+    const { zoom = defaults.zoom, posix , type } = Map
     const [placesSearchResult, setPlacesSearchResult] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [stopLists, setStopLists] = useState<any[]>([]);
   const [newStopAssign, setNewStopAssign] = useState(false);
   const [searchTargetCoords, setSearchTargetCoords] = useState(posix);
   const [stop, setStop] = useState("");
+  const [routeName, setRouteName] = useState("");
+  const [routeArr, setRouteArr] = useState([]);
+  const [selectedRouteId, setSelectedRouteId] = useState(null);
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
@@ -80,6 +89,28 @@ const Map = (Map: MapProps) => {
     setSearchQuery(item.properties.formatted);
   };
 
+
+  const [routesData, setRoutesData] = useState([])
+
+  const fetchRoutesData  =async () => {
+      const {data}  =await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/routes`)
+      if (data) {
+        setRoutesData(data)
+      }
+  }
+
+  useEffect(()=>{
+    fetchRoutesData()
+  },[])
+
+
+
+
+  const handleMarkerClick = (stop) => {
+    if (type === 'stops') return;
+    setRouteArr(prev => [...prev,{[stop._id]: stop.location.coordinates} ]);
+   }
+
   const handleConfirmStop = async () => {
     const { data } = await axios.post(
       `${process.env.NEXT_PUBLIC_API_URL}/stops`,
@@ -101,8 +132,25 @@ const Map = (Map: MapProps) => {
     setStop("");
   };
 
+
   
 
+  const color = ['red', 'green', 'blue', 'orange', 'purple', 'pink', 'brown', 'gray'];
+
+  const handleRouteCompletion = async () => {
+    const { data } = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/routes`,
+        {
+            routesName: routeName,
+            stopsCoords: routeArr.map(item=> Object.values(item)[0]),
+            startStop: Object.keys(routeArr[0])[0],
+            endStop: Object.keys(routeArr[routeArr.length-1])[0],
+        }
+    )
+    toast.success("Route created successfully");
+    setRouteArr([]);
+    setRouteName("");
+  }
   useEffect(() => {
      // A better check to see if the position has changed from the initial posix
     const hasChanged =JSON.stringify
@@ -152,6 +200,12 @@ const Map = (Map: MapProps) => {
         </div>
       )}
 
+  {type == 'routes' && (<div>
+    
+     <Input placeholder="Enter the route name" onChange={(e)=>setRouteName(e.target.value)}/>
+    <Button onClick={handleRouteCompletion}>Complete Route</Button>
+     </div>
+     )}
       <MapContainer
         center={searchTargetCoords}
         zoom={zoom}
@@ -159,33 +213,21 @@ const Map = (Map: MapProps) => {
         style={{ height: "100%", width: "100%" }}
         className="relative z-0"
       >
-       
-        <div className="absolute top-2 left-16 z-[1000] bg-white p-3 rounded-xl shadow-lg w-72">
-          <Input
-            onChange={handleChange}
-            value={searchQuery}
-            placeholder=" Search a location..."
-            className="w-full"
-          />
-          {placesSearchResult?.length > 0 && (
-            <ul className="mt-2 max-h-60 overflow-y-auto border rounded-md shadow-sm bg-white">
-              {placesSearchResult.map((item) => (
-                <li
-                  key={item.properties.place_id}
-                  onClick={() => handleSelectPlace(item)}
-                  className="cursor-pointer hover:bg-gray-100 p-2 rounded-md transition-colors duration-150 text-sm"
-                >
-                  {item.properties.formatted}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+      {type == 'routes' && <Polyline pathOptions={{ color: 'brown' }} positions={routeArr.map(item=> Object.values(item)[0])} />}
+
+        {type == 'routes' && routesData.map((item,id)=>{
+          return (
+              <Polyline key={id} pathOptions={{ color: color[id], weight: selectedRouteId == item._id ? 10:3,  }} positions={item.stopsCoords} />
+          )
+        })}
+
+        
+
         <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <Marker
+      {type == 'stops' && <Marker
           eventHandlers={{
             dragend: handleDragEnd,
           }}
@@ -193,10 +235,30 @@ const Map = (Map: MapProps) => {
           draggable={true}
         >
           <Popup>📍Drag me to set a new stop location</Popup>
-        </Marker>
+        </Marker>}
        
+
+       {
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] bg-white p-3 rounded-xl shadow-lg border border-gray-200 flex items-center gap-2 w-[350px]">
+        {routesData.map((item)=>{
+          return (
+            <Button
+              key={item._id}
+              variant="outline"
+              className={`flex-1 ${selectedRouteId == item._id ? 'bg-gray-400' : ''}`}
+              onClick={() => setSelectedRouteId(item._id)}
+            >
+              {item.routesName}
+            </Button>
+          )
+        })}
+        </div>
+       }
         {stopLists.map((stop) => (
           <Marker
+          eventHandlers={{
+            click: ()=> handleMarkerClick(stop)
+          }}
             key={stop.id}
             position={[
               stop.location.coordinates[0],
@@ -204,7 +266,7 @@ const Map = (Map: MapProps) => {
             ]}
             icon={stopIcon}
           >
-            <Popup>
+           {type=="stops" && <Popup>
             
               <div className="mb-2 border-b pb-2">
                 <h3 className="font-bold text-lg text-gray-800 truncate">
@@ -249,7 +311,7 @@ const Map = (Map: MapProps) => {
                 <TrashIcon className="w-4 h-4" />
                 <span>Delete Stop</span>
               </button>
-            </Popup>
+            </Popup>}
           </Marker>
         ))}
       </MapContainer>
