@@ -13,6 +13,8 @@ app.use(cors())
 app.use(express.json());
 import dotenv from 'dotenv';
 import connect from './db/connect.js';
+import Stop from './models/stops.js';
+import Route from './models/routes.js';
 app.use('/uploads', express.static('uploads'))
 
 connect()

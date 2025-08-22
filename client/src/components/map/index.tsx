@@ -1,6 +1,6 @@
 "use client"
 
-import { MapContainer, TileLayer, Marker, Popup,Polyline } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup,Polyline, Tooltip } from "react-leaflet";
 import { LatLngExpression, LatLngTuple  } from 'leaflet';
 import "leaflet/dist/leaflet.css";
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
@@ -12,6 +12,8 @@ import { Input } from "../ui/input";
 import L from "leaflet";
 import { toast } from "sonner";
 import { GlobeIcon, MapPinIcon, Navigation, TrashIcon } from "lucide-react";
+import Image from "next/image";
+import haversine from 'haversine-distance'
 
 
 
@@ -49,7 +51,7 @@ const Map = (Map: MapProps) => {
   const [stop, setStop] = useState("");
   const [routeName, setRouteName] = useState("");
   const [routeArr, setRouteArr] = useState([]);
-  const [selectedRouteId, setSelectedRouteId] = useState(null);
+  const [selectedRoute, setSelectedRoute] = useState(null);
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
@@ -99,7 +101,19 @@ const Map = (Map: MapProps) => {
       }
   }
 
+
+  const [ busData, setBusData] = useState([])
+
+  const fetchBusData  =async () => {
+      const {data}  =await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/bus`)
+      if (data) {
+        setBusData(data)
+      }
+  }
+
+
   useEffect(()=>{
+    fetchBusData()
     fetchRoutesData()
   },[])
 
@@ -145,6 +159,7 @@ const Map = (Map: MapProps) => {
             stopsCoords: routeArr.map(item=> Object.values(item)[0]),
             startStop: Object.keys(routeArr[0])[0],
             endStop: Object.keys(routeArr[routeArr.length-1])[0],
+            stops: routeArr.map(item=> Object.keys(item)[0]),
         }
     )
     toast.success("Route created successfully");
@@ -172,6 +187,20 @@ const Map = (Map: MapProps) => {
       });
     }
   };
+
+
+  const handleBusAssign  =async (id) => {
+    const {data} =    await axios.patch(`${process.env.NEXT_PUBLIC_API_URL}/routes/${selectedRoute._id}/bus`, {
+      busId: id,
+    });
+    if (data) {
+      toast.success(data.message);
+      fetchRoutesData();
+      setSelectedRoute(null);
+    } else {
+      toast.error("Failed to assign bus to route");
+    }
+  }
 
   return (
     <div className="relative h-screen w-full">
@@ -201,11 +230,12 @@ const Map = (Map: MapProps) => {
       )}
 
   {type == 'routes' && (<div>
-    
+
      <Input placeholder="Enter the route name" onChange={(e)=>setRouteName(e.target.value)}/>
     <Button onClick={handleRouteCompletion}>Complete Route</Button>
      </div>
      )}
+     {JSON.stringify(routeArr)}
       <MapContainer
         center={searchTargetCoords}
         zoom={zoom}
@@ -217,7 +247,7 @@ const Map = (Map: MapProps) => {
 
         {type == 'routes' && routesData.map((item,id)=>{
           return (
-              <Polyline key={id} pathOptions={{ color: color[id], weight: selectedRouteId == item._id ? 10:3,  }} positions={item.stopsCoords} />
+              <Polyline key={id} pathOptions={{ color: color[id], weight: selectedRoute?._id == item._id ? 10:3,  }} positions={item.stopsCoords} />
           )
         })}
 
@@ -239,16 +269,37 @@ const Map = (Map: MapProps) => {
        
 
        {
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] bg-white p-3 rounded-xl shadow-lg border border-gray-200 flex items-center gap-2 w-[350px]">
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[1000] bg-white p-3 rounded-xl shadow-lg border border-gray-200 flex items-center gap-2">
+        Select a route
         {routesData.map((item)=>{
           return (
             <Button
               key={item._id}
               variant="outline"
-              className={`flex-1 ${selectedRouteId == item._id ? 'bg-gray-400' : ''}`}
-              onClick={() => setSelectedRouteId(item._id)}
+              className={`flex-1 ${selectedRoute?._id == item._id ? 'bg-gray-400' : ''}`}
+              onClick={() => setSelectedRoute(item)}
             >
               {item.routesName}
+            </Button>
+          )
+        })}
+        </div>
+       }
+
+
+{ type == 'routes' && selectedRoute?._id &&
+        <div className="absolute flex flex-col right-0 top-1/3 -translate-x-1/2 z-[1000] bg-white p-3 rounded-xl shadow-lg border border-gray-200 flex items-center gap-2">
+          Assign Busses To the route
+        {busData.map((item)=>{
+          return (
+            <Button
+              key={item._id}
+              variant="outline"
+              className={`flex-1 ${selectedRoute.bus == item._id ? 'bg-pink-400' : ''}`}
+              onClick={()=>handleBusAssign(item._id)}
+            >
+                <img src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${item.image}`} alt="bus image" className="w-12 h-12 object-cover rounded-md" />
+              {item.busNumber}
             </Button>
           )
         })}
@@ -258,6 +309,7 @@ const Map = (Map: MapProps) => {
           <Marker
           eventHandlers={{
             click: ()=> handleMarkerClick(stop)
+            
           }}
             key={stop.id}
             position={[
@@ -266,6 +318,10 @@ const Map = (Map: MapProps) => {
             ]}
             icon={stopIcon}
           >
+
+            {/* {type == "routes" &&  <Tooltip>
+          A simple tooltip on hover.
+        </Tooltip>} */}
            {type=="stops" && <Popup>
             
               <div className="mb-2 border-b pb-2">

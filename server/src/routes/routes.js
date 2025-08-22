@@ -1,10 +1,11 @@
 import express from 'express';
-import { getAllRoutes, addNewRoutes} from '../controllers/routes.js';
+import { getAllRoutes, addNewRoutes , assignBusToRoute} from '../controllers/routes.js';
 const router = express.Router();
 
 
 router.get('/routes', getAllRoutes)
 router.post('/routes', addNewRoutes)
+router.patch('/routes/:id/bus', assignBusToRoute)
 
 
 
