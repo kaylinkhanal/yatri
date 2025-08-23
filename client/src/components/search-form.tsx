@@ -7,10 +7,12 @@ import {
   ArrowRightLeftIcon as ArrowsRightLeft,
   Calendar,
   Users,
+  CircleX,
 } from "lucide-react";
 import { Formik, Form, useField } from "formik";
 import * as Yup from "yup";
 import { useState } from "react";
+import { BusSearchCard } from "./BusSearchCard";
 
 // This is a custom component to simplify connecting Formik to Shadcn UI inputs.
 // It handles the field props and displays validation errors.
@@ -71,7 +73,8 @@ export default function SearchForm() {
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
       >
-        {({ isSubmitting }) => (
+        {({values, isSubmitting }) => (
+          <>
           <Form className="bg-white/20 backdrop-blur-sm rounded-lg p-4 md:p-6 grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
             <FormikInput
               name="from"
@@ -114,35 +117,35 @@ export default function SearchForm() {
             />
             <Button
               type="submit"
-              className="col-span-1 md:col-span-5 bg-gold text-white hover:bg-gold/90 h-12 text-lg font-semibold"
+              className="col-span-1 md:col-span-5 bg-[#f4c534] text-white hover:bg-gold/90 h-12 text-lg font-semibold"
               disabled={isSubmitting}
             >
               SEARCH
             </Button>
           </Form>
+                       {results.length > 0 && (
+              <div className=" relative mt-6 bg-white/20 backdrop-blur-sm rounded-lg p-4 md:p-6 space-y-4">
+                <button
+                  className="absolute top-2 right-2 text-white/80 hover:text-white/40"
+                  onClick={() => setResults([])}
+                >
+                  <CircleX className="w-5 h-5" />
+                </button>
+                {results.map((route, index) => (
+                  <BusSearchCard
+                    key={index}
+                    {...route}
+                    from={values.from}
+                    to={values.to}
+                  />
+                ))}
+              </div>
+            )}
+           </>
         )}
+
       </Formik>
-      {results.length > 0 && results.map((item)=>{
-        return (
-          <div className="bg-white gap-2 rounded-lg p-4 mt-6" key={item.id}>
-            <h2 className="text-lg font-semibold text-white mt-6 mb-2">{item.bus}</h2>
-            <p className="text-sm text-gray-400">Distance: {item.distance} km</p>
-            <p className="text-sm text-gray-400">Price: ${item.price}</p>
-            <p className="flex text-sm text-gray-400">Stops: {item.stops.map((val,id)=>{
-              return (
-                <>
-                 <div className="bg-pink-200 w-24 m-2 rounded" key={id}>
-                  {val.stopName}  
-                </div>
-                →
-                </>
-               
-              )
-            })}</p>
- 
-            </div>
-        )
-      })}
+      
     </div>
   );
 }

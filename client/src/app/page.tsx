@@ -5,18 +5,24 @@ import SearchForm from "@/components/search-form"
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen flex flex-col">
-      <Image
-        src="/banner.webp"
-        alt="European Intercity Routes"
-        fill
-        priority
-        className="object-cover"
-        sizes="100vw"
-      />
-      <div className="absolute inset-0 bg-black/60 flex flex-col">
-        <Header />
-        <HeroSection />
+     <div className="relative min-h-screen flex flex-col">
+      {/* Background Image */}
+      <div className="absolute inset-0 -z-10">
+        <Image
+          src="/banner.webp"
+          alt="European Intercity Routes"
+          fill
+          priority
+          className="object-cover"
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-black/60" /> {/* Dark overlay */}
+      </div>
+
+      {/* Content */}
+      <Header />
+      <HeroSection />
+      <div className="flex-1">
         <SearchForm />
       </div>
     </div>

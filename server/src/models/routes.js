@@ -18,10 +18,10 @@ const routeSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Stop',
     },
-    bus: {
+    bus: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Bus',
-    },
+    }],
     stops: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Stop',
