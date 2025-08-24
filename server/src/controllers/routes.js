@@ -10,7 +10,8 @@ const getAllRoutes = async (req,res) => {
                 }
              const includingRoutes = await Route.find({
                stops: { $all: [stop1._id, stop2._id] }
-             }).populate('stops', 'stopName stopCoords')
+             }).populate('stops', 'stopName')
+             .populate('bus','busNumber image totalSeats occupiedSeats busType farePerKm')
              return res.status(200).json(includingRoutes);
         
     }
