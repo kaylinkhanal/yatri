@@ -41,8 +41,7 @@ const busSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
-    // route: { type: mongoose.Schema.Types.ObjectId, ref: "Route" },
-    // driver: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  
 
     status: {
         type: String,
