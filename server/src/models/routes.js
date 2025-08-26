@@ -1,4 +1,4 @@
-// yatri/server/src/models/stops.js
+// yatri/server/src/models/routes.js
 
 import mongoose from 'mongoose';
 
