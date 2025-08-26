@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import axios from "axios";
 
 interface BusStop {
   stopName: string;
@@ -29,10 +30,54 @@ interface BusRouteCardProps {
   from: string;
   to: string;
 }
-
-export const BusSearchCard = ({ stops, bus, from, to }: BusRouteCardProps) => {
+const API_KEY = 'AIzaSyCcyqJvpKGzw9Lv8a7s_rVlwerLR0LR7_s'; 
+export const BusSearchCard = ({ stops, bus, from, to,distance }: BusRouteCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const [placesDetails, setPlacesDetails] = useState<any>(null);
+  const handlePlacesInfo = async(placename) => {
+      
+    const prompt = `give me details of ${placename}`;
+
+ const response = await axios.post(
+  `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`,
+  {
+    "contents": [
+      {
+        "role": "user",
+        "parts": [
+          { "text": prompt }
+        ]
+      }
+    ],
+    // "generationConfig": {
+    //   "responseMimeType": "application/json",
+    //   "responseSchema": {
+    //     "type": "OBJECT",
+    //     "properties": {
+    //       "intent": { "type": "STRING", "enum": ["BOOK_TICKET", "GENERAL_QUERY"] },
+    //       "from": { "type": "STRING", "nullable": true },
+    //       "to": { "type": "STRING", "nullable": true },
+    //       "date": { "type": "STRING", "nullable": true },
+    //       "passengers": { "type": "NUMBER", "nullable": true },
+    //       "originalQuery": { "type": "STRING" },
+    //       "ai_suggestion": { "type": "STRING", "nullable": true }
+    //     },
+    //     "required": ["intent", "originalQuery"]
+    //   }
+    // }
+  },
+  {
+    headers: {
+      "X-goog-api-key": API_KEY
+    }
+  }
+
+);
+const result = response.data.candidates[0].content.parts[0].text;
+setPlacesDetails(result)
+
+  }
   return (
     <Card className="bg-white/90 shadow-card hover:shadow-elegant transition-all duration-300 border-0 overflow-hidden">
       {/* Clickable Compact View */}
@@ -117,7 +162,7 @@ export const BusSearchCard = ({ stops, bus, from, to }: BusRouteCardProps) => {
           </div>
         ))}
       </div>
-
+{/* {JSON.stringify(placesDetails)} */}
       {/* Expanded Details */}
       {isExpanded && (
         <div className="px-4 pb-4 border-t-2 bg-accent/5 animate-fade-in">
@@ -135,6 +180,7 @@ export const BusSearchCard = ({ stops, bus, from, to }: BusRouteCardProps) => {
                 return (
                   <div
                     key={index}
+                    onClick={()=> handlePlacesInfo(stop.stopName)}
                     className="flex items-center gap-1 flex-shrink-1"
                   >
                     <div className="flex flex-col items-center">
@@ -169,7 +215,7 @@ export const BusSearchCard = ({ stops, bus, from, to }: BusRouteCardProps) => {
             <div className="grid grid-cols-3 gap-4 text-sm mt-4">
               <div>
                 <span className="text-muted-foreground">Distance:</span>
-                <span className="ml-2 font-medium">45 km</span>
+                <span className="ml-2 font-medium">{distance.toFixed(2)} km</span>
               </div>
               <div>
                 <span className="text-muted-foreground">Stops:</span>
