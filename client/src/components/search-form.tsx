@@ -33,7 +33,7 @@ interface AiOutput {
 export default function SearchForm() {
   const chips = [
     "Where are we?",
-    "Book Pokhara tomorrow from Kathmandu",
+    "Book Pokhara tomorrow from kalanki",
     "AC buses?",
     "Pokhara for 3, non-veg food & coke",
   ];
@@ -49,9 +49,9 @@ export default function SearchForm() {
   const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'prompt' | 'unsupported'>('prompt');
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
   const [isRequestingLocation, setIsRequestingLocation] = useState(false);
-  
+  const [promptPendingReply, setPromptPendingReply] = useState('');
   const API_KEY = 'AIzaSyCcyqJvpKGzw9Lv8a7s_rVlwerLR0LR7_s';
-  
+  const [allQuestionsAnswers, setAllQuestionsAnswers] = useState([]);
   const fetchRoutes = async () => {
     if (!aiOutput || aiOutput.intent !== 'BOOK_TICKET' || (!aiOutput.from && !aiOutput.to)) {
       setResults([]); 
@@ -323,6 +323,7 @@ CRITICAL RULES FOR DATE PARSING:
 - If no date mentioned, set to null
 
 Rules for Fields (BOOK_TICKET only):
+- pendingPrompt: If user enters from, to, date, passengers, extras but hasn't confirmed booking, set to a prompt like "Do you want to book this?" If user has not provided enough info to search, set it to something like "How many people are you?" or "Where are you traveling to?" or "When do you want to travel?" based on missing info. If user has provided enough info to search, confirm the booking by typing Yes.
 - from: Origin city/stop. If not specified, infer from user's current location if available, otherwise null.
 - to: Destination city/stop. If not specified, null.
 - date: Must be normalized to YYYY-MM-DD using today's date context.
@@ -343,12 +344,16 @@ Rules for Fields (BOOK_TICKET only):
    - Examples of when NOT to ask questions: "Book Kathmandu to Pokhara", "I want to go to Pokhara", "Bus to Chitwan tomorrow"
    - Only ask when query is very vague like: "I want to book bus", "Travel somewhere"
 
+instead of asking somthing like do you want to book this? we can ask user to confirm your booking by typing "Which Bus you like to book?" or "Please enter the bus name you want to book?"
 Rules for GENERAL_QUERY:
-- from, to, date, passengers, extras, distance, ai_suggestion → always null.
+- from, to, date, passengers, extras, distance,pendingPrompt, ai_suggestion  → always null.
 
 User Query: "${submissionText}"
 `;
-  
+
+  const existingQuestsionAnswers = [...allQuestionsAnswers]
+  existingQuestsionAnswers.push(submissionText)
+  setAllQuestionsAnswers(existingQuestsionAnswers);
     try {
       const response = await axios.post(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`,
@@ -374,6 +379,7 @@ User Query: "${submissionText}"
                 "extras": { "type": "ARRAY", "items": { "type": "STRING" }, "nullable": true },
                 "distance": { "type": "STRING", "nullable": true },
                 "originalQuery": { "type": "STRING" },
+                "pendingPrompt": { "type": "STRING" },
                 "ai_suggestion": { "type": "STRING", "nullable": true }
               },
               "required": ["intent", "originalQuery"]
@@ -390,6 +396,7 @@ User Query: "${submissionText}"
       const result = response.data.candidates[0].content.parts[0].text;
       const parsedResult = JSON.parse(result);
       setAiOutput(parsedResult);
+      setPromptPendingReply(parsedResult.pendingPrompt || '');
       
       if (!query) {
         setAiInput("");
@@ -551,6 +558,20 @@ User Query: "${submissionText}"
           </div>
         )}
 
+     {promptPendingReply && <div className="mt-4 bg-white text-black m-4 p-4 w-full italic rounded-lg">
+      {promptPendingReply}
+        </div>  }
+
+      {allQuestionsAnswers.length > 0 && (
+
+          <ul className="list-disc list-inside space-y-1">
+            {allQuestionsAnswers.map((qa, index) => (
+                      <div key={index} className="mt-4 bg-white text-black m-4 p-4 w-full rounded-lg">
+                      <li >{qa}</li>
+                      </div>
+            ))}
+          </ul>
+      )}
         {!isLoading && results.length === 0 && aiOutput?.intent === 'BOOK_TICKET' && !error && (aiOutput?.from || aiOutput?.to) && (
           <div className="relative mt-6 bg-yellow-500/20 backdrop-blur-sm rounded-lg p-4 md:p-6 animate-in fade-in-50 slide-in-from-bottom-4 duration-500">
             <button
