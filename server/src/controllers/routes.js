@@ -24,8 +24,10 @@ const getAllRoutes = async (req,res) => {
              return res.status(200).json({routes,distance: distance/1000});
         
     }
-    const routes = await Route.find();
-    res.status(200).json({routes});
+    const routes = await Route.find().populate('stops'); 
+    
+    
+    res.status(200).json(routes);
 }
 
 
