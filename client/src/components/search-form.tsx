@@ -97,45 +97,6 @@ async function callGeminiWithRetry(body: any, apiKey: string, maxRetries = 2, on
   }
 }
 
-const buildGeneralPrompt = (originalQuery: string, currentLocation: Location | null) => {
-  const locationContext = currentLocation
-    ? `User's current location: latitude ${currentLocation.lat}, longitude ${currentLocation.lng}. If the user asks for their location, resolve to the nearest city/district/landmark in Nepal.`
-    : 'User location is not available.';
-
-  return `You are Yatri AI, a helpful travel assistant for Nepal.\n\n${locationContext}\n\nUser question: "${originalQuery}"\n\nInstructions:\n- Be concise, friendly, and factual.\n- If asked about current location and you have coordinates, resolve to the nearest known place in Nepal.\n- If you don't have enough info, be honest and invite a quick follow-up. Avoid sounding robotic.`;
-};
-
-const buildClassificationPrompt = (params: {
-  submissionText: string;
-  todayISO: string;
-  tomorrowISO: string;
-  currentTimeNepal: string;
-  currentLocation: Location | null;
-  locationPermission: 'granted' | 'denied' | 'prompt' | 'unsupported';
-}) => {
-  const { submissionText, todayISO, tomorrowISO, currentTimeNepal, currentLocation, locationPermission } = params;
-  const locationText = currentLocation
-    ? `User's current location: lat=${currentLocation.lat}, lng=${currentLocation.lng} (Permission: GRANTED). If "from" is missing, infer nearest major city/town from these coordinates.`
-    : locationPermission === 'denied'
-    ? 'User location: UNAVAILABLE (Permission denied). Do not infer departure automatically.'
-    : 'User location: UNAVAILABLE (Permission not granted). Do not infer departure automatically.';
-
-  const examples = `\n\nExamples (follow exactly):\n1) Input: "Book Kathmandu to Pokhara tomorrow for 2 on AC bus"\nOutput: {\n  "intent": "BOOK_TICKET",\n  "from": "Kathmandu",\n  "to": "Pokhara",\n  "date": "${tomorrowISO}",\n  "passengers": 2,\n  "extras": ["AC"],\n  "distance": "200 km",\n  "originalQuery": "Book Kathmandu to Pokhara tomorrow for 2 on AC bus",\n  "pendingPrompt": "Please enter the bus name you want to book",\n  "ai_suggestion": null\n}\n\n2) Input: "I want to book bus"\nOutput: {\n  "intent": "BOOK_TICKET",\n  "from": null,\n  "to": null,\n  "date": null,\n  "passengers": 1,\n  "extras": null,\n  "distance": null,\n  "originalQuery": "I want to book bus",\n  "pendingPrompt": "Got it! Where are you starting from, and where would you like to go?",\n  "ai_suggestion": "Could you share your departure city and destination (e.g., Kathmandu to Pokhara)?"\n}\n\n3) Input: "Bus to Chitwan tomorrow" (location not granted)\nOutput: {\n  "intent": "BOOK_TICKET",\n  "from": null,\n  "to": "Chitwan",\n  "date": "${tomorrowISO}",\n  "passengers": 1,\n  "extras": null,\n  "distance": null,\n  "originalQuery": "Bus to Chitwan tomorrow",\n  "pendingPrompt": "Where are you traveling from?",\n  "ai_suggestion": null\n}\n`;
-
-  return `You are Yatri AI, an accurate and friendly assistant for Nepal's bus booking.\nAnalyze the user query and output STRICT JSON only, following the schema. Do not wrap JSON in markdown or add commentary.\n\nContext:\n- ${locationText}\n- Today's date: ${todayISO} (Nepal Time, GMT+5:45)\n- Current time: ${currentTimeNepal}\n\nIntent types:\n- BOOK_TICKET: user wants to search/book buses\n- GENERAL_QUERY: questions about services/locations/current location etc.\n\nDate rules (normalize to YYYY-MM-DD):\n- today => ${todayISO}; tomorrow => ${tomorrowISO}; day after tomorrow => +2 days; next week => +7 days; this weekend => upcoming Saturday\n- Specific dates like "25th December": use current year if upcoming, else next year\n- If no date, set null\n\nField rules for BOOK_TICKET:\n- from: origin stop/city; infer from location ONLY if available, else null\n- to: destination; if not specified, null\n- date: normalized date or null\n- passengers: default 1\n- extras: array of preferences or null (e.g., "AC", "Sleeper", "Window seat", "Food", "Drinks"). If not requested, set null.\n- distance: estimated Nepal road distance as a string like "200 km" for common pairs (Kathmandu–Pokhara ~200 km; Kathmandu–Chitwan ~150 km; Kathmandu–Butwal ~280 km; Pokhara–Chitwan ~120 km). If unsure, use null.\n- pendingPrompt: Ask ONE short, friendly question (from → to → date → passengers → extras). Keep it natural, e.g., "Great — what date would you like to travel?" If enough info, set to "Please enter the bus name you want to book".\n- ai_suggestion: Only set when BOTH from AND to are missing or the query is vague. Keep it friendly, e.g., "Could you share your departure city and destination?" Otherwise null.\n- originalQuery: echo full user text.\n\nGeneral queries: set from, to, date, passengers, extras, distance, pendingPrompt, ai_suggestion to null.\n\nOutput policy:\n- Return ONLY valid JSON matching the schema. Use null for missing. Do not invent cities or distances.\n- Never set both pendingPrompt and ai_suggestion at the same time — prefer pendingPrompt.\n\nUser Query: "${submissionText}"${examples}`;
-};
-
-function safeParseJSON(text: string) {
-  try { return JSON.parse(text); } catch (e) {
-    const start = text.indexOf('{');
-    const end = text.lastIndexOf('}');
-    if (start !== -1 && end !== -1 && end > start) {
-      const candidate = text.slice(start, end + 1);
-      try { return JSON.parse(candidate); } catch {}
-    }
-    return null;
-  }
-}
 
 export default function SearchForm() {
   const chips = [
@@ -163,6 +124,46 @@ export default function SearchForm() {
   const [hasInteracted, setHasInteracted] = useState(false);
 
   const endRef = useRef<HTMLDivElement | null>(null);
+  const buildGeneralPrompt = (originalQuery: string, currentLocation: Location | null) => {
+    const locationContext = currentLocation
+      ? `User's current location: latitude ${currentLocation.lat}, longitude ${currentLocation.lng}. If the user asks for their location, resolve to the nearest city/district/landmark in Nepal.`
+      : 'User location is not available.';
+  
+    return `You are Yatri AI, a helpful travel assistant for Nepal.\n\n${locationContext}\n\nUser question: "${originalQuery}"\n\nInstructions:\n- Be concise, friendly, and factual.\n- If asked about current location and you have coordinates, resolve to the nearest known place in Nepal.\n- If you don't have enough info, be honest and invite a quick follow-up. Avoid sounding robotic.`;
+  };
+  
+  const buildClassificationPrompt = (params: {
+    submissionText: string;
+    todayISO: string;
+    tomorrowISO: string;
+    currentTimeNepal: string;
+    currentLocation: Location | null;
+    locationPermission: 'granted' | 'denied' | 'prompt' | 'unsupported';
+  }) => {
+    const { submissionText, todayISO, tomorrowISO, currentTimeNepal, currentLocation, locationPermission } = params;
+    const locationText = currentLocation
+      ? `User's current location: lat=${currentLocation.lat}, lng=${currentLocation.lng} (Permission: GRANTED). If "from" is missing, infer nearest major city/town from these coordinates.`
+      : locationPermission === 'denied'
+      ? 'User location: UNAVAILABLE (Permission denied). Do not infer departure automatically.'
+      : 'User location: UNAVAILABLE (Permission not granted). Do not infer departure automatically.';
+  
+    const examples = `\n\nExamples (follow exactly):\n1) Input: "Book Kathmandu to Pokhara tomorrow for 2 on AC bus"\nOutput: {\n  "intent": "BOOK_TICKET",\n  "from": "Kathmandu",\n  "to": "Pokhara",\n  "date": "${tomorrowISO}",\n  "passengers": 2,\n  "extras": ["AC"],\n  "distance": "200 km",\n  "originalQuery": "Book Kathmandu to Pokhara tomorrow for 2 on AC bus",\n  "pendingPrompt": "Please enter the bus name you want to book",\n  "ai_suggestion": null\n}\n\n2) Input: "I want to book bus"\nOutput: {\n  "intent": "BOOK_TICKET",\n  "from": null,\n  "to": null,\n  "date": null,\n  "passengers": 1,\n  "extras": null,\n  "distance": null,\n  "originalQuery": "I want to book bus",\n  "pendingPrompt": "Got it! Where are you starting from, and where would you like to go?",\n  "ai_suggestion": "Could you share your departure city and destination (e.g., Kathmandu to Pokhara)?"\n}\n\n3) Input: "Bus to Chitwan tomorrow" (location not granted)\nOutput: {\n  "intent": "BOOK_TICKET",\n  "from": null,\n  "to": "Chitwan",\n  "date": "${tomorrowISO}",\n   "passengers": 1,\n  "extras": null,\n  "distance": null,\n  "originalQuery": "Bus to Chitwan tomorrow",\n  "pendingPrompt": "Where are you traveling from?",\n  "ai_suggestion": null\n}\n)`;
+  
+    return `You are Yatri AI, an accurate and friendly assistant for Nepal's bus booking.\nAnalyze the user query and output STRICT JSON only, following the schema. Do not wrap JSON in markdown or add commentary.\n\nContext:\n- ${locationText}\n- Today's date: ${todayISO} (Nepal Time, GMT+5:45)\n- Current time: ${currentTimeNepal}\n\nIntent types:\n- BOOK_TICKET: user wants to search/book buses\n- GENERAL_QUERY: questions about services/locations/current location etc.\n\nDate rules (normalize to YYYY-MM-DD):\n- today => ${todayISO}; tomorrow => ${tomorrowISO}; day after tomorrow => +2 days; next week => +7 days; this weekend => upcoming Saturday\n- Specific dates like "25th December": use current year if upcoming, else next year\n- If no date, set null\n\nField rules for BOOK_TICKET:\n- from: origin stop/city; infer from location ONLY if available, else null\n- to: destination; if not specified, null\n- date: normalized date or null\n- passengers: default 1\n- extras: array of preferences or null (e.g., "AC", "Sleeper", "Window seat", "Food", "Drinks"). If not requested, set null.\n- distance: estimated Nepal road distance as a string like "200 km" for common pairs (Kathmandu–Pokhara ~200 km; Kathmandu–Chitwan ~150 km; Kathmandu–Butwal ~280 km; Pokhara–Chitwan ~120 km). If unsure, use null.\n- pendingPrompt: Ask ONE short, friendly question (from → to → date → passengers → extras). Keep it natural, e.g., "Great — what date would you like to travel?" If enough info, set to "Please enter the bus name you want to book".\n- ai_suggestion: Only set when BOTH from AND to are missing or the query is vague.  make sure pendingPrompt: "booked" if to and from was provided in users previously provided details. Previously provided details were: ${allQuestionsAnswers.join(', ')}\n\n4). If Previously provided details already has some texts that starts from YTR, know that bus details has also been provided. Do not ask for bus name again. Just confirm the booking by setting pendingPrompt to "booked".\n Keep it friendly, e.g., "Could you share your departure city and destination?"  Otherwise null.\n- originalQuery: echo full user text.\n\nGeneral queries: set from, to, date, passengers, extras, distance, pendingPrompt, ai_suggestion to null.\n\nOutput policy:\n- Return ONLY valid JSON matching the schema. Use null for missing. Do not invent cities or distances.\n- Never set both pendingPrompt and ai_suggestion at the same time — prefer pendingPrompt.\n\nUser Query: "${submissionText}"${examples}`;
+  };
+  
+  function safeParseJSON(text: string) {
+    try { return JSON.parse(text); } catch (e) {
+      const start = text.indexOf('{');
+      const end = text.lastIndexOf('}');
+      if (start !== -1 && end !== -1 && end > start) {
+        const candidate = text.slice(start, end + 1);
+        try { return JSON.parse(candidate); } catch {}
+      }
+      return null;
+    }
+  }
+  
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [transcript, results, isLoading]);
@@ -183,6 +184,7 @@ export default function SearchForm() {
       );
       
       if (aiOutput?.from === aiOutput.from && aiOutput?.to === aiOutput.to) {
+        debugger;
         setResults(data.routes || []);
         
         if (data.distance) {
@@ -362,7 +364,13 @@ export default function SearchForm() {
         if (aiOutput.ai_suggestion) {
           setResults([]);
         } else {
-          fetchRoutes();
+          if(aiOutput.from && aiOutput.to && promptPendingReply === 'booked') {
+            setPromptPendingReply('Your bus has been booked! Safe travels. 🚌✨');
+            debugger;
+          }else{
+            fetchRoutes();
+          }
+       
         }
       } else if (aiOutput.intent === 'GENERAL_QUERY') {
         setResults([]);
@@ -473,7 +481,12 @@ export default function SearchForm() {
       }
       setAiOutput(parsedResult);
       if (parsedResult.intent === 'BOOK_TICKET') {
+        debugger;
         setPromptPendingReply(parsedResult.pendingPrompt || '');
+        if(parsedResult.pendingPrompt === 'booked') {
+          setResults([]);
+
+        }
       } else {
         setPromptPendingReply('');
       }
@@ -617,6 +630,7 @@ export default function SearchForm() {
               )}
 
               {/* Results cards below messages when present */}
+              {JSON.stringify(results)}
               {results.length > 0 && !isLoading && (
                 <div className="flex justify-start">
                   <div className="flex items-start gap-2 w-full max-w-4xl">
