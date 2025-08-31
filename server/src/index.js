@@ -1,24 +1,28 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
+import cors from 'cors';
+
 import userRoutes from './routes/user.js';
 import busRoutes from './routes/bus.js';
 import stopRoutes from './routes/stops.js';
 import routeRoutes from './routes/routes.js';
 
-
-
-import cors from 'cors';
+import connect from './db/connect.js';
 
 const app = express();
+
 app.use(cors())
 app.use(express.json());
-import dotenv from 'dotenv';
-import connect from './db/connect.js';
+app.use('/uploads', express.static('uploads'));
+
 import Stop from './models/stops.js';
 import Route from './models/routes.js';
-app.use('/uploads', express.static('uploads'))
 
-connect()
-dotenv.config()
+
+connect();
+
 const PORT = process.env.PORT || 8000;
 
 

@@ -2,9 +2,20 @@ import Bus from '../models/bus.js';
 
 
 const getAllBuses = async (req,res) => {
-    const bus = await Bus.find();
-    res.status(200).json(bus);
+    const skipCount = (req.query.page-1)*5
+    const bus = await Bus.find().skip(skipCount).limit(5)
+    const totalCount = await Bus.countDocuments();
+    res.status(200).json({bus,totalCount});
 }
+
+
+
+
+
+
+
+
+
 
 
 const addNewBus = async (req,res) => {

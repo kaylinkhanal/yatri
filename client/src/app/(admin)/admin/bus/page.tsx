@@ -6,20 +6,35 @@ import { PlusCircle, MapPin, UserPlus, Check, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import axios from "axios"
+import { Button } from "@/components/ui/button"
 
 export default function BusDashboard() {
+  const [page ,setPage] = useState(1)
   const [busData, setBusData] = useState([])
+  const [totalCount, setTotalCount] = useState(0)
 
   const fetchBusData  =async () => {
-      const {data}  =await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/bus`)
+      const {data}  =await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/bus?page=${page}`)
       if (data) {
-        setBusData(data)
+        setBusData(data.bus)
+        setTotalCount(data.totalCount)
       }
   }
 
   useEffect(()=>{
     fetchBusData()
-  },[])
+  },[page])
+
+
+
+  const handleChange  = (action) => {
+    if (action === 'next' && Math.ceil(totalCount/5) > page) {
+      setPage(page + 1)
+    } else if (action === 'prev' && page > 1) {
+      setPage(page - 1)
+    }
+
+  }
   const router = useRouter()
   return (
     <div className="flex flex-col gap-8 p-4 md:p-6 lg:p-8">
@@ -115,6 +130,12 @@ export default function BusDashboard() {
               ))}
             </TableBody>
           </Table>
+
+          <div className="flex gap-2 justify-end m-4">
+            <Button onClick={()=>handleChange('prev')}>Previous</Button>
+            {page}
+            <Button onClick={()=>handleChange('next')}>Next</Button>
+          </div>
         </div>
       </div>
     </div>
