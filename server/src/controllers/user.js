@@ -1,6 +1,7 @@
 import User from '../models/user.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import sendEmail from '../utils/sendEmail.js';
 
 
 
@@ -57,6 +58,7 @@ const registerNewUser = async (req,res) => {
     // step 3 
         // create the new user now in the db
      await User.create(req.body);
+     sendEmail(req.body.email,  "<h1> Welcome to our example </h1>")
      return res.json({ message: "User registered successfully" , user: req.body });
        
 }
