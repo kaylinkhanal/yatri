@@ -9,9 +9,12 @@ router.post('/', createBooking);
 
 router.get('/', getAllBookings);
 
+router.patch('/:id/status', updateBookingStatus);
+
+
 router.get('/:id', getBookingById);
 
-router.put('/:id', updateBookingStatus);
+
 
 router.delete('/:id', deleteBooking);
 
