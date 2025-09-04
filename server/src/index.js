@@ -31,7 +31,7 @@ app.use(userRoutes)
 app.use(busRoutes)
 app.use(stopRoutes)
 app.use(routeRoutes)
-app.use(bookingRoutes);
+app.use('/booking',bookingRoutes);
 
 app.listen(PORT, ()=> {
     console.log(`Server is running on http://localhost:${PORT}`);

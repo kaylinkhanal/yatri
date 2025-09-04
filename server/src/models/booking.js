@@ -3,28 +3,31 @@
 import mongoose from 'mongoose';
 
 const bookingSchema = new mongoose.Schema({
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true,
-    },
     bus: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Bus',
-        required: true,
+    },
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+    },
+    pickupStop : {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Stop',
+    },
+    dropStop: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Stop',
     },
     route: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Route',
-        required: true, 
     },
     seats: {
         type: [Number],
-        required: true,
     },
     journeyDate: {
         type: Date,
-        required: true,
     },
     status: {
         type: String,
@@ -33,7 +36,6 @@ const bookingSchema = new mongoose.Schema({
     },
     price: {
         type: Number,
-        required: true,
         min: 0,
     },
     paymentStatus: {
@@ -41,11 +43,9 @@ const bookingSchema = new mongoose.Schema({
         enum: ['unpaid', 'paid', 'refunded'],
         default: 'unpaid',
     },
-    ticketNumber: {
-        type: String,
-        unique: true,
-        required: true,
-    },
+    // ticketNumber: {
+    //     type: String,
+    // },
  },
  {
      timestamps: true,

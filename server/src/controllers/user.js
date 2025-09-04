@@ -6,7 +6,12 @@ import sendEmail from '../utils/sendEmail.js';
 
 
 const getAllUsers = async (req,res) => {
-    const user = await User.find();
+    let user
+    if(req.query.role) {
+        user = await User.find({ role: req.query.role });
+    }else{
+        user = await User.find();
+    }
     res.status(200).json(user);
 }
 

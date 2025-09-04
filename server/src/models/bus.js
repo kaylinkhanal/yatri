@@ -10,6 +10,10 @@ const busSchema = new mongoose.Schema({
         trim: true,
         unique: true,
     },
+    driverId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+    },
     image: {
         type: String
     },

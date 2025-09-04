@@ -107,7 +107,7 @@ const Map = (Map: MapProps) => {
   const fetchBusData  =async () => {
       const {data}  =await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/bus`)
       if (data) {
-        setBusData(data)
+        setBusData(data.bus)
       }
   }
 
@@ -290,7 +290,7 @@ const Map = (Map: MapProps) => {
 { type == 'routes' && selectedRoute?._id &&
         <div className="absolute flex flex-col right-0 top-1/3 -translate-x-1/2 z-[1000] bg-white p-3 rounded-xl shadow-lg border border-gray-200 flex items-center gap-2">
           Assign Busses To the route
-        {busData.map((item)=>{
+        {busData && busData.length>0 && busData.map((item)=>{
           return (
             <Button
               key={item._id}
@@ -311,7 +311,7 @@ const Map = (Map: MapProps) => {
             click: ()=> handleMarkerClick(stop)
             
           }}
-            key={stop.id}
+            key={stop._id}
             position={[
               stop.location.coordinates[0],
               stop.location.coordinates[1],

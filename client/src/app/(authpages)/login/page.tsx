@@ -20,6 +20,8 @@ import {
 import { Label } from "@radix-ui/react-label"
 import axios from "axios"
 import { useRouter } from "next/navigation"
+import { useDispatch } from "react-redux"
+import { addUserDetails } from "@/lib/redux/features/userSlice"
 
 export default function LoginPage() {
   const [registrationStatus, setRegistrationStatus] = useState<{ success: boolean; message: string } | null>(null)
@@ -32,13 +34,16 @@ export default function LoginPage() {
 
   })
   const router = useRouter()
+  const dispatch = useDispatch()
   
   const handleSubmit = async (values) => {
     try{
       const {data} =await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/login`, values)
       if(data.isLoggedIn){
        router.push("/")
+       dispatch(addUserDetails(data))
       }
+
     }catch(error) {
       alert(error?.response?.data?.message)
     }

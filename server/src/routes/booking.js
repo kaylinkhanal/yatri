@@ -1,7 +1,7 @@
 // yatri/server/src/routes/booking.js
 
 import express from 'express';
-import { createBooking, deleteBooking, getAllBookings, getBookingById, updateBookingStatus } from '../controllers/booking';
+import { createBooking, deleteBooking, getAllBookings, getBookingById, updateBookingStatus } from '../controllers/booking.js';
 
 const router = express.Router();
 

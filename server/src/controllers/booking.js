@@ -1,31 +1,23 @@
 // yatri/server/src/controllers/booking.js
 
-import Booking from "../models/booking";
-import Bus from "../models/bus";
-import Seat from "../models/seat";
-import User from "../models/user.js";
+import Booking from "../models/booking.js";
+import Bus from "../models/bus.js";
+import Stop from "../models/stops.js";
 
 export const createBooking = async (req, res) => {
     try {
-        const { userId, busId, seatId, date, time } = req.body;
-
-        const existingBooking = await Booking.findOne ({
-            bus: busId,
-            seat: seatId,
-            date,
-            status: "confirmed",
-        });
-
-        if (existingBooking){
-            return res.status(400).json({ message: "Seat already booked." });
-        }
-
+        const { userId, busName, seatId, date, time, from ,to } = req.body;
+        const pickupStop =await  Stop.findOne({ stopName: from.toLowerCase() });
+        const dropStop = await Stop.findOne({ stopName: to.toLowerCase() });
+        const bus = await Bus.find({busNumber: busName});
         const booking = new Booking({
-            user: userId,
-            bus: busId,
+            userId: userId,
             seat: seatId,
             date,
             time,
+            bus: bus._id,
+            pickupStop: pickupStop._id,
+            dropStop: dropStop._id,
         });
 
         await booking.save();
@@ -39,11 +31,9 @@ export const createBooking = async (req, res) => {
 
 export const getAllBookings = async (req, res) => {
     try {
-        const bookings = await Booking.find()
-            .populate('user', 'name email')
-            .populate('bus', 'busNumber')
-            .populate('seat', 'seatNumber');
-
+        const bookings = await Booking.find().populate('userId', 'phoneNumber email')
+        .populate('pickupStop', 'stopName')
+        .populate('dropStop', 'stopName')
         res.status(200).json({ bookings });
     } catch (error) {
         console.error("Error fetching bookings:", error);

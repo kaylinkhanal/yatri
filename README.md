@@ -11,12 +11,12 @@ Yatri is a comprehensive bus and vehicle management system designed to streamlin
 - [x] Create Stops
 - [x] Create Routes
 - [x] Assign fares
-- [ ] Reservation Module
+- [x] Reservation Module
 - [x] Seat selection (female/disabled/child)
 - [ ] Driver/sub-driver details
 - [ ] Add round trips
 - [ ] Vehicle current locations
-- [ ] Bus rental
+- [x] Bus rental
 - [x] ADMIN panel (inspired by [this design](https://dribbble.com/shots/13958896-Car-Rental-App))
 
 ### Version 1.0.1 - Second Release (Minor) 🚧

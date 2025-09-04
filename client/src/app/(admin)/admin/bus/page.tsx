@@ -7,11 +7,19 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import axios from "axios"
 import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function BusDashboard() {
   const [page ,setPage] = useState(1)
   const [busData, setBusData] = useState([])
+  const [driverData, setDriverData] = useState([])
   const [totalCount, setTotalCount] = useState(0)
+  const fetchDriverData  =async () => {
+    const {data}  =await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users?role=driver`)
+    if (data) {
+      setDriverData(data)
+    }
+}
 
   const fetchBusData  =async () => {
       const {data}  =await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/bus?page=${page}`)
@@ -26,6 +34,9 @@ export default function BusDashboard() {
   },[page])
 
 
+  useEffect(()=>{
+    fetchDriverData()
+  },[])
 
   const handleChange  = (action) => {
     if (action === 'next' && Math.ceil(totalCount/5) > page) {
@@ -89,6 +100,7 @@ export default function BusDashboard() {
                 <TableHead>Rentable</TableHead>
                 <TableHead>Maintenance</TableHead>
                 <TableHead>Active</TableHead>
+                <TableHead>Bus Driver</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -125,6 +137,20 @@ export default function BusDashboard() {
                     ) : (
                       <X className="h-4 w-4 text-red-500" />
                     )}
+                  </TableCell>
+                  <TableCell>
+                  <Select>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Assign driver" />
+              </SelectTrigger>
+              <SelectContent>
+                {driverData.length> 0 && driverData.map((driver) => {
+                  return (<SelectItem key={driver._id} value={driver._id}>{driver.lastName}</SelectItem>
+                  )
+                })
+                }
+              </SelectContent>
+            </Select>
                   </TableCell>
                 </TableRow>
               ))}
