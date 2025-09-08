@@ -1,10 +1,28 @@
+'use client'
 import Image from "next/image"
 import Link from "next/link"
 // import Header from "@/components/header"
 import HeroSection from "@/components/hero-section"
 import SearchForm from "@/components/search-form"
+import { socket } from "@/lib/socket"
+import { useEffect, useState } from "react"
+import { Button } from "@/components/ui/button"
 
 export default function Home() {
+  const [msg, setMsg] = useState('')
+useEffect(()=>{
+  socket.on('connection')
+  socket.on('message',(message)=>{
+    setMsg(message)
+  })
+},[])
+
+const handleClick=(e)=>{
+  socket.emit('message', e.target.value)
+}
+
+
+
   return (
      <div className="relative h-screen overflow-hidden">
       {/* Background Image */}
@@ -42,6 +60,8 @@ export default function Home() {
               <li>
                 <Link href="/register" className="block px-4 py-2 hover:bg-white/15 transition">Register</Link>
               </li>
+      <input onChange={handleClick} placeholder="enter msg"/>
+{msg}
             </ul>
           </nav>
           <div className="px-4 py-3 text-xs text-white/70 border-t border-white/10">© {new Date().getFullYear()} Yatri</div>

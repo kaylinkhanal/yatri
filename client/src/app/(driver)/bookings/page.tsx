@@ -326,3 +326,17 @@ const DetailRow = ({ label, value, icon, highlight }) => (
 );
 
 export default BookingsPage;
+
+
+
+
+// // ---> 
+// backend       frontend       database                        type of projects
+
+
+// python        react          postgres/mongodb etc            data related/
+// java          angular/react  oracle/mysql/mssql              enterprise     ---  
+// .net          angular/react  mssql/oracle                    enterprise     ---
+// php           vuejs/react    mysql                           web-management-system
+// javascript    react/ang/vue  mongodb/postgres                web- realtime/ videostreaming/ 
+
