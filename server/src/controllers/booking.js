@@ -2,6 +2,7 @@
 
 import Booking from "../models/booking.js";
 import Bus from "../models/bus.js";
+import Notification from "../models/notification.js";
 import Stop from "../models/stops.js";
 
 export const createBooking = async (req, res) => {
@@ -9,7 +10,7 @@ export const createBooking = async (req, res) => {
         const { userId, busName, seatId, date, time, from ,to } = req.body;
         const pickupStop =await  Stop.findOne({ stopName: from.toLowerCase() });
         const dropStop = await Stop.findOne({ stopName: to.toLowerCase() });
-        const bus = await Bus.find({busNumber: busName});
+        const bus = await Bus.findOne({busNumber: busName});
         const booking = new Booking({
             userId: userId,
             seat: seatId,
@@ -21,6 +22,16 @@ export const createBooking = async (req, res) => {
         });
 
         await booking.save();
+        console.log(bus)
+            Notification.create({
+              "content": `Booking has been created from ${pickupStop.stopName} to ${dropStop.stopName}` ,
+              "isRead": false,
+              "receiver": bus.driverId,
+              "sender": userId,
+              "title": "New Bus Booking Request",
+              "type": "info",
+              "link": `/orders/${booking._id}`,
+            })
         res.status(201).json({ message: "Booking created successfully", booking });
     } catch (error) {
         console.error("Error creating booking:", error);

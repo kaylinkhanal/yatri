@@ -1,5 +1,5 @@
 import express from 'express';
-import { addNewBus, getAllBuses} from '../controllers/bus.js';
+import { addNewBus, getAllBuses ,updateBusDriver} from '../controllers/bus.js';
 const router = express.Router();
 import multer from 'multer';
 const storage = multer.diskStorage({
@@ -15,6 +15,7 @@ const storage = multer.diskStorage({
 
 router.get('/bus', getAllBuses)
 router.post('/bus',upload.single('image'),  addNewBus)
+router.patch('/bus/:busId/assign-driver', updateBusDriver )
 
 
 

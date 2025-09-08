@@ -9,8 +9,10 @@ import busRoutes from './routes/bus.js';
 import stopRoutes from './routes/stops.js';
 import routeRoutes from './routes/routes.js';
 import bookingRoutes from './routes/booking.js';
+import notificationsRoutes from './routes/notifications.js';
 
 import connect from './db/connect.js';
+import Notification from './models/notification.js';
 
 const app = express();
 const server = createServer(app);
@@ -35,6 +37,8 @@ app.use(busRoutes)
 app.use(stopRoutes)
 app.use(routeRoutes)
 app.use('/booking',bookingRoutes);
+app.use(notificationsRoutes);
+
 
 
 
@@ -49,6 +53,7 @@ io.on('connection', (socket) => {
         console.log('user disconnected');
     });
 });
+
 
 server.listen(PORT, ()=> {
     console.log(`Server is running on http://localhost:${PORT}`);

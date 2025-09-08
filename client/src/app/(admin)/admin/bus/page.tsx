@@ -46,6 +46,11 @@ export default function BusDashboard() {
     }
 
   }
+
+  const changeDriverId = async(driverId, busId) => {
+   const {data} =await axios.patch(`${process.env.NEXT_PUBLIC_API_URL}/bus/${busId}/assign-driver`, {driverId})
+    
+  }
   const router = useRouter()
   return (
     <div className="flex flex-col gap-8 p-4 md:p-6 lg:p-8">
@@ -139,11 +144,11 @@ export default function BusDashboard() {
                     )}
                   </TableCell>
                   <TableCell>
-                  <Select>
+                  <Select onValueChange={(item)=>changeDriverId(item, bus._id)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Assign driver" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent >
                 {driverData.length> 0 && driverData.map((driver) => {
                   return (<SelectItem key={driver._id} value={driver._id}>{driver.lastName}</SelectItem>
                   )

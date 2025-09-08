@@ -1,5 +1,6 @@
 'use client'
 import axios from 'axios';
+import { Bell, BellDotIcon } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
 const BookingsPage = () => {
@@ -75,6 +76,8 @@ const BookingsPage = () => {
       minHeight: '100vh',
       padding: '40px 20px'
     }}>
+   
+
       {/* Header Section */}
       <div style={{ 
         textAlign: 'center', 
@@ -90,7 +93,6 @@ const BookingsPage = () => {
         }}>
           BOOKINGS
         </h1>
-        
         {/* Search Bar */}
         <div style={{
           maxWidth: '600px',
@@ -329,14 +331,4 @@ export default BookingsPage;
 
 
 
-
-// // ---> 
-// backend       frontend       database                        type of projects
-
-
-// python        react          postgres/mongodb etc            data related/
-// java          angular/react  oracle/mysql/mssql              enterprise     ---  
-// .net          angular/react  mssql/oracle                    enterprise     ---
-// php           vuejs/react    mysql                           web-management-system
-// javascript    react/ang/vue  mongodb/postgres                web- realtime/ videostreaming/ 
 

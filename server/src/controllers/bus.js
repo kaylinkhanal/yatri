@@ -9,6 +9,18 @@ const getAllBuses = async (req,res) => {
 }
 
 
+const updateBusDriver = async (req, res) => {
+    const { busId } = req.params;
+    const { driverId } = req.body;
+
+    const bus = await Bus.findById(busId);
+    if (!bus) {
+        return res.status(404).json({ message: "Bus not found" });
+    }
+    bus.driverId = driverId;
+    await bus.save();
+    res.status(200).json({ message: "Driver assigned to bus successfully", bus });
+}
 
 
 
@@ -35,6 +47,6 @@ const addNewBus = async (req,res) => {
 }
 
 
-export { getAllBuses, addNewBus };
+export { getAllBuses, addNewBus ,updateBusDriver};
 
 
